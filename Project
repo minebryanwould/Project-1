@@ -8,21 +8,14 @@ button.Size = UDim2.new(0, 90, 0, 90)
 button.ImageTransparency = 0.5
 
 button.MouseButton1Click:Connect(function()
-    print("Button clicked!")
-
     local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
     if humanoid then
-        print("Humanoid found, changing WalkSpeed.")
         walkSpeedState = (walkSpeedState == 20) and 40 or 20
         humanoid.WalkSpeed = walkSpeedState
-        print("WalkSpeed set to: " .. walkSpeedState)
-    else
-        print("Humanoid not found!")
     end
 end)
 
 player.CharacterAdded:Connect(function(character)
     local humanoid = character:WaitForChild("Humanoid")
     humanoid.WalkSpeed = walkSpeedState
-    print("WalkSpeed on CharacterAdded set to: " .. walkSpeedState)
 end)
