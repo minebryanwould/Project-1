@@ -2,22 +2,23 @@ local player = game.Players.LocalPlayer
 local defaultSpeed = 20
 local boostedSpeed = 40
 local jumpResetTime = 1
-local jumpCounter = 0
-local lastJumpTime = 0
-local currentSpeed = defaultSpeed
 
 local function setupCharacter(character)
     local humanoid = character:WaitForChild("Humanoid")
     humanoid.WalkSpeed = defaultSpeed
 
+    local jumpCounter = 0
+    local lastJumpTime = 0
+    local isJumping = false
+    local currentSpeed = defaultSpeed
+
     local function resetJumpCounter()
         jumpCounter = 0
     end
 
-    player.InputBegan:Connect(function(input, gameProcessedEvent)
-        if gameProcessedEvent then return end
-
-        if input.UserInputType == Enum.UserInputType.Touch and input.KeyCode == Enum.KeyCode.Space then
+    humanoid.StateChanged:Connect(function(_, newState)
+        if newState == Enum.HumanoidStateType.Jumping and not isJumping then
+            isJumping = true
             local currentTime = tick()
 
             if currentTime - lastJumpTime > jumpResetTime then
@@ -36,6 +37,8 @@ local function setupCharacter(character)
                 end
                 humanoid.WalkSpeed = currentSpeed
             end
+        elseif newState == Enum.HumanoidStateType.Landed then
+            isJumping = false
         end
     end)
 
@@ -50,4 +53,4 @@ if player.Character then
     setupCharacter(player.Character)
 end
 
-player.CharacterAdded:Connect(setupCharacter) 
+player.CharacterAdded:Connect(setupCharacter)
