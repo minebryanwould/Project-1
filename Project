@@ -17,7 +17,7 @@ local function setupCharacter(character)
     button.Size = UDim2.new(0, 90, 0, 90)
     button.Position = UDim2.new(0, 590, 0, 5)
     button.Image = "rbxassetid://" .. buttonImageID
-    button.BackgroundTransparency = 1
+    button.BackgroundTransparency = 0.5
 
     button.MouseButton1Click:Connect(function()
         local currentTime = tick()
