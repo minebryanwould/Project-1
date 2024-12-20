@@ -26,7 +26,7 @@ local function setupCharacter(character)
             jumpCounter = jumpCounter + 1
             lastJumpTime = currentTime
 
-            if jumpCounter == 3 then
+            if jumpCounter == 5 then
                 resetJumpCounter()
                 if currentSpeed == defaultSpeed then
                     currentSpeed = boostedSpeed
