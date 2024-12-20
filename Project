@@ -1,44 +1,33 @@
 local player = game.Players.LocalPlayer
 local defaultSpeed = 20
 local boostedSpeed = 40
-local jumpResetTime = 0.5
-local jumpCounter = 0
-local lastJumpTime = 0
+local buttonImageID = "78883039855625"
+local button = nil
+local clickResetTime = 0.5
+local lastClickTime = 0
 local currentSpeed = defaultSpeed
 local humanoid = nil
-local userInputService = game:GetService("UserInputService")
 
 local function setupCharacter(character)
     humanoid = character:WaitForChild("Humanoid")
-    humanoid.WalkSpeed = defaultSpeed
+    humanoid.WalkSpeed = currentSpeed
 
-    local function resetJumpCounter()
-        jumpCounter = 0
-    end
+    button = Instance.new("ImageButton")
+    button.Parent = player.PlayerGui:WaitForChild("ScreenGui")
+    button.Size = UDim2.new(0, 90, 0, 90)
+    button.Position = UDim2.new(0, 590, 0, 5)
+    button.Image = "rbxassetid://" .. buttonImageID
+    button.BackgroundTransparency = 1
 
-    userInputService.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
+    button.MouseButton1Click:Connect(function()
+        local currentTime = tick()
 
-        if input.UserInputType == Enum.UserInputType.Touch then
-            local currentTime = tick()
-
-            if currentTime - lastJumpTime > jumpResetTime then
-                resetJumpCounter()
-            end
-
-            jumpCounter = jumpCounter + 1
-            lastJumpTime = currentTime
-
-            if jumpCounter == 5 then
-                resetJumpCounter()
-                if currentSpeed == defaultSpeed then
-                    currentSpeed = boostedSpeed
-                else
-                    currentSpeed = defaultSpeed
-                end
-                humanoid.WalkSpeed = currentSpeed
-            end
+        if currentTime - lastClickTime > clickResetTime then
+            currentSpeed = (currentSpeed == defaultSpeed) and boostedSpeed or defaultSpeed
+            humanoid.WalkSpeed = currentSpeed
         end
+
+        lastClickTime = currentTime
     end)
 
     game:GetService("RunService").Heartbeat:Connect(function()
@@ -52,4 +41,6 @@ if player.Character then
     setupCharacter(player.Character)
 end
 
-player.CharacterAdded:Connect(setupCharacter)
+player.CharacterAdded:Connect(function(character)
+    setupCharacter(character)
+end)
