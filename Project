@@ -1,7 +1,7 @@
 local player = game.Players.LocalPlayer
 local defaultSpeed = 20
 local boostedSpeed = 40
-local jumpResetTime = 1
+local jumpResetTime = 0.5
 local jumpCounter = 0
 local lastJumpTime = 0
 local currentSpeed = defaultSpeed
@@ -19,7 +19,6 @@ local function setupCharacter(character)
         if newState == Enum.HumanoidStateType.Jumping then
             local currentTime = tick()
 
-            -- Reset jump counter if there's a delay greater than the reset time
             if currentTime - lastJumpTime > jumpResetTime then
                 resetJumpCounter()
             end
@@ -29,7 +28,6 @@ local function setupCharacter(character)
 
             if jumpCounter == 3 then
                 resetJumpCounter()
-                -- Toggle WalkSpeed between default and boosted speed
                 if currentSpeed == defaultSpeed then
                     currentSpeed = boostedSpeed
                 else
@@ -40,7 +38,6 @@ local function setupCharacter(character)
         end
     end)
 
-    -- Keep WalkSpeed locked at the desired speed
     game:GetService("RunService").Heartbeat:Connect(function()
         if humanoid.WalkSpeed ~= currentSpeed then
             humanoid.WalkSpeed = currentSpeed
