@@ -1,21 +1,49 @@
 local player = game.Players.LocalPlayer
-local button = script.Parent
-local walkSpeedState = 20
+local defaultSpeed = 20
+local boostedSpeed = 40
+local jumpResetTime = 0.2
 
-button.Image = "rbxassetid://78883039855625"
-button.Position = UDim2.new(0, 590, 0, 5)
-button.Size = UDim2.new(0, 90, 0, 90)
-button.ImageTransparency = 0.5
-
-button.MouseButton1Click:Connect(function()
-    local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
-    if humanoid then
-        walkSpeedState = (walkSpeedState == 20) and 40 or 20
-        humanoid.WalkSpeed = walkSpeedState
-    end
-end)
-
-player.CharacterAdded:Connect(function(character)
+local function setupCharacter(character)
     local humanoid = character:WaitForChild("Humanoid")
-    humanoid.WalkSpeed = walkSpeedState
-end)
+    humanoid.WalkSpeed = defaultSpeed
+
+    local jumpCounter = 0
+    local lastJumpTime = 0
+
+    local function resetJumpCounter()
+        jumpCounter = 0
+    end
+
+    humanoid:GetPropertyChangedSignal("Jump"):Connect(function()
+        if humanoid.Jump then
+            local currentTime = tick()
+            if currentTime - lastJumpTime > jumpResetTime then
+                resetJumpCounter()
+            end
+            
+            jumpCounter += 1
+            lastJumpTime = currentTime
+            
+            if jumpCounter == 3 then
+                resetJumpCounter()
+                if humanoid.WalkSpeed == defaultSpeed then
+                    humanoid.WalkSpeed = boostedSpeed
+                else
+                    humanoid.WalkSpeed = defaultSpeed
+                end
+            end
+        end
+    end)
+
+    humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+        if humanoid.WalkSpeed ~= defaultSpeed and humanoid.WalkSpeed ~= boostedSpeed then
+            humanoid.WalkSpeed = humanoid.WalkSpeed == boostedSpeed and boostedSpeed or defaultSpeed
+        end
+    end)
+end
+
+if player.Character then
+    setupCharacter(player.Character)
+end
+
+player.CharacterAdded:Connect(setupCharacter)
