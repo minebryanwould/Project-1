@@ -1,16 +1,20 @@
 local player = game.Players.LocalPlayer
 local defaultSpeed = 20
 local boostedSpeed = 40
+local defaultJumpPower = 50
+local boostedJumpPower = 100
 local jumpResetTime = 0.2
 
 local function setupCharacter(character)
     local humanoid = character:WaitForChild("Humanoid")
     humanoid.WalkSpeed = defaultSpeed
+    humanoid.JumpPower = defaultJumpPower
 
     local jumpCounter = 0
     local lastJumpTime = 0
     local isJumping = false
     local currentSpeed = defaultSpeed
+    local currentJumpPower = defaultJumpPower
 
     local function resetJumpCounter()
         jumpCounter = 0
@@ -32,10 +36,13 @@ local function setupCharacter(character)
                 resetJumpCounter()
                 if currentSpeed == defaultSpeed then
                     currentSpeed = boostedSpeed
+                    currentJumpPower = boostedJumpPower
                 else
                     currentSpeed = defaultSpeed
+                    currentJumpPower = defaultJumpPower
                 end
                 humanoid.WalkSpeed = currentSpeed
+                humanoid.JumpPower = currentJumpPower
             end
         elseif newState == Enum.HumanoidStateType.Landed then
             isJumping = false
@@ -45,6 +52,12 @@ local function setupCharacter(character)
     humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
         if humanoid.WalkSpeed ~= currentSpeed then
             humanoid.WalkSpeed = currentSpeed
+        end
+    end)
+
+    humanoid:GetPropertyChangedSignal("JumpPower"):Connect(function()
+        if humanoid.JumpPower ~= currentJumpPower then
+            humanoid.JumpPower = currentJumpPower
         end
     end)
 end
