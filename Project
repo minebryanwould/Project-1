@@ -14,10 +14,8 @@ local function setupCharacter(character)
         jumpCounter = 0
     end
 
-    player.InputBegan:Connect(function(input, gameProcessedEvent)
-        if gameProcessedEvent then return end
-
-        if input.UserInputType == Enum.UserInputType.Touch and input.KeyCode == Enum.KeyCode.Space then
+    humanoid.StateChanged:Connect(function(_, newState)
+        if newState == Enum.HumanoidStateType.Jumping then
             local currentTime = tick()
 
             if currentTime - lastJumpTime > jumpResetTime then
@@ -45,7 +43,7 @@ local function setupCharacter(character)
         end
     end)
 
-    -- Continuously force WalkSpeed to stay at the desired speed
+    -- Continuously enforce WalkSpeed to stay at the correct value
     game:GetService("RunService").Heartbeat:Connect(function()
         if humanoid.WalkSpeed ~= currentSpeed then
             humanoid.WalkSpeed = currentSpeed
