@@ -15,8 +15,8 @@ local function setupCharacter(character)
         jumpCounter = 0
     end
 
-    humanoid:GetPropertyChangedSignal("Jump"):Connect(function()
-        if humanoid.Jump and not isJumping then
+    humanoid.StateChanged:Connect(function(_, newState)
+        if newState == Enum.HumanoidStateType.Jumping and not isJumping then
             isJumping = true
             local currentTime = tick()
 
@@ -35,7 +35,7 @@ local function setupCharacter(character)
                     humanoid.WalkSpeed = defaultSpeed
                 end
             end
-        elseif not humanoid.Jump then
+        elseif newState == Enum.HumanoidStateType.Landed then
             isJumping = false
         end
     end)
