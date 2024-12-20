@@ -10,6 +10,7 @@ local function setupCharacter(character)
     local jumpCounter = 0
     local lastJumpTime = 0
     local isJumping = false
+    local currentSpeed = defaultSpeed
 
     local function resetJumpCounter()
         jumpCounter = 0
@@ -29,11 +30,12 @@ local function setupCharacter(character)
 
             if jumpCounter == 3 then
                 resetJumpCounter()
-                if humanoid.WalkSpeed == defaultSpeed then
-                    humanoid.WalkSpeed = boostedSpeed
+                if currentSpeed == defaultSpeed then
+                    currentSpeed = boostedSpeed
                 else
-                    humanoid.WalkSpeed = defaultSpeed
+                    currentSpeed = defaultSpeed
                 end
+                humanoid.WalkSpeed = currentSpeed
             end
         elseif newState == Enum.HumanoidStateType.Landed then
             isJumping = false
@@ -41,8 +43,8 @@ local function setupCharacter(character)
     end)
 
     humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
-        if humanoid.WalkSpeed ~= defaultSpeed and humanoid.WalkSpeed ~= boostedSpeed then
-            humanoid.WalkSpeed = humanoid.WalkSpeed == boostedSpeed and boostedSpeed or defaultSpeed
+        if humanoid.WalkSpeed ~= currentSpeed then
+            humanoid.WalkSpeed = currentSpeed
         end
     end)
 end
