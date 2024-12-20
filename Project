@@ -1,7 +1,7 @@
 local player = game.Players.LocalPlayer
 local defaultSpeed = 20
 local boostedSpeed = 40
-local jumpResetTime = 0.4 -- Adjusted reset time to 0.4 seconds
+local jumpResetTime = 0.5
 
 local function setupCharacter(character)
     local humanoid = character:WaitForChild("Humanoid")
