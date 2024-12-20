@@ -9,21 +9,24 @@ local function setupCharacter(character)
 
     local jumpCounter = 0
     local lastJumpTime = 0
+    local isJumping = false
 
     local function resetJumpCounter()
         jumpCounter = 0
     end
 
     humanoid:GetPropertyChangedSignal("Jump"):Connect(function()
-        if humanoid.Jump then
+        if humanoid.Jump and not isJumping then
+            isJumping = true
             local currentTime = tick()
+
             if currentTime - lastJumpTime > jumpResetTime then
                 resetJumpCounter()
             end
-            
+
             jumpCounter += 1
             lastJumpTime = currentTime
-            
+
             if jumpCounter == 3 then
                 resetJumpCounter()
                 if humanoid.WalkSpeed == defaultSpeed then
@@ -32,6 +35,8 @@ local function setupCharacter(character)
                     humanoid.WalkSpeed = defaultSpeed
                 end
             end
+        elseif not humanoid.Jump then
+            isJumping = false
         end
     end)
 
