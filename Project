@@ -1,6 +1,6 @@
 local player = game.Players.LocalPlayer
 local defaultSpeed = 17
-local boostedSpeed = 40
+local boostedSpeed = 30
 local buttonImageID = "78883039855625"
 local button = nil
 local currentSpeed = defaultSpeed
