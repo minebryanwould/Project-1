@@ -1,0 +1,29 @@
+local function safeRun(func)
+    local success, error = pcall(func)
+    if not success then return end
+end
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    safeRun(function()
+        local lighting = game:GetService("Lighting")
+        lighting.FogEnd = math.huge
+        lighting.FogStart = 0
+        lighting.Brightness = 2
+        lighting.GlobalShadows = false
+        lighting.ClockTime = 12
+    end)
+end)
+
+local UserInputService = game:GetService("UserInputService")
+UserInputService.JumpRequest:Connect(function()
+    safeRun(function()
+        local player = game:GetService("Players").LocalPlayer
+        local character = player.Character
+        if character then
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end
+    end)
+end)
