@@ -11,12 +11,18 @@ local player = game:GetService("Players").LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 
--- Infinite Jump function (works like Delta InfYield)
+local lastJumpTime = 0
+local jumpDelay = 0.5 -- Delay between jump presses to prevent double/triple jumps
+
+-- Infinite Jump function (works like Delta InfYield, with reduced sensitivity)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if not gameProcessed then
-        if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space then
-            if infiniteJumpEnabled then
-                humanoid:ChangeState("Jumping")
+        if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.Keyboard then
+            if tick() - lastJumpTime > jumpDelay then
+                lastJumpTime = tick()  -- Update last jump time
+                if infiniteJumpEnabled then
+                    humanoid:ChangeState("Jumping")
+                end
             end
         end
     end
