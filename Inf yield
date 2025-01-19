@@ -6,43 +6,25 @@ game:GetService("Players").LocalPlayer.Idled:Connect(function()
 end)
 
 local UserInputService = game:GetService("UserInputService")
-local InfiniteJumpEnabled = true
+local infiniteJump = true
 UserInputService.JumpRequest:Connect(function()
-    if InfiniteJumpEnabled and game:GetService("Players").LocalPlayer.Character then
-        game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+    if infiniteJump then
+        local character = game:GetService("Players").LocalPlayer.Character
+        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:ChangeState("Jumping")
+        end
     end
 end)
 
-local function applyFullBright()
+local function applyFullBrightAndNoFog()
     local Lighting = game:GetService("Lighting")
     Lighting.Brightness = 2
     Lighting.ClockTime = 12
     Lighting.FogEnd = 1e10
     Lighting.GlobalShadows = false
     Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
-    workspace.DescendantAdded:Connect(function(descendant)
-        if descendant:IsA("Light") then
-            descendant.Brightness = 2
-        end
-    end)
 end
 
-local function boostFPS()
-    for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("Decal") or obj:IsA("Texture") then
-            obj:Destroy()
-        elseif obj:IsA("ParticleEmitter") or obj:IsA("Beam") then
-            obj.Enabled = false
-        end
-    end
-end
-
-workspace.DescendantAdded:Connect(function()
-    applyFullBright()
-    boostFPS()
-end)
-
-applyFullBright()
-boostFPS()
-
-game:GetService("RunService").RenderStepped:Connect(applyFullBright)
+applyFullBrightAndNoFog()
+game:GetService("RunService").RenderStepped:Connect(applyFullBrightAndNoFog)
