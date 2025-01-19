@@ -13,33 +13,36 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
-local function applyVisualSettings()
+local function applyFullBright()
     local Lighting = game:GetService("Lighting")
     Lighting.Brightness = 2
-    Lighting.ClockTime = 14
+    Lighting.ClockTime = 12
     Lighting.FogEnd = 1e10
     Lighting.GlobalShadows = false
     Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
+    workspace.DescendantAdded:Connect(function(descendant)
+        if descendant:IsA("Light") then
+            descendant.Brightness = 2
+        end
+    end)
 end
 
 local function boostFPS()
-    local Lighting = game:GetService("Lighting")
-    for _, v in pairs(Lighting:GetChildren()) do
-        if v:IsA("PostEffect") then v:Destroy() end
-    end
     for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("ParticleEmitter") or obj:IsA("Beam") then
+        if obj:IsA("Decal") or obj:IsA("Texture") then
+            obj:Destroy()
+        elseif obj:IsA("ParticleEmitter") or obj:IsA("Beam") then
             obj.Enabled = false
         end
     end
 end
 
 workspace.DescendantAdded:Connect(function()
-    applyVisualSettings()
+    applyFullBright()
     boostFPS()
 end)
 
-applyVisualSettings()
+applyFullBright()
 boostFPS()
 
-game:GetService("RunService").RenderStepped:Connect(applyVisualSettings)
+game:GetService("RunService").RenderStepped:Connect(applyFullBright)
