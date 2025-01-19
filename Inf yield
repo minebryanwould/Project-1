@@ -1,31 +1,45 @@
-if game.PlaceId == 5044920251 then
-    local function safeRun(func)
-        local success, error = pcall(func)
-        if not success then return end
+local VirtualUser = game:GetService("VirtualUser")
+game:GetService("Players").LocalPlayer.Idled:Connect(function()
+    VirtualUser:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+    wait(1)
+    VirtualUser:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+end)
+
+local UserInputService = game:GetService("UserInputService")
+local InfiniteJumpEnabled = true
+UserInputService.JumpRequest:Connect(function()
+    if InfiniteJumpEnabled and game:GetService("Players").LocalPlayer.Character then
+        game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
     end
+end)
 
-    game:GetService("RunService").RenderStepped:Connect(function()
-        safeRun(function()
-            local lighting = game:GetService("Lighting")
-            lighting.FogEnd = math.huge
-            lighting.FogStart = 0
-            lighting.Brightness = 2
-            lighting.GlobalShadows = false
-            lighting.ClockTime = 12
-        end)
-    end)
-
-    local UserInputService = game:GetService("UserInputService")
-    UserInputService.JumpRequest:Connect(function()
-        safeRun(function()
-            local player = game:GetService("Players").LocalPlayer
-            local character = player.Character
-            if character then
-                local humanoid = character:FindFirstChildOfClass("Humanoid")
-                if humanoid then
-                    humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                end
-            end
-        end)
-    end)
+local function applyVisualSettings()
+    local Lighting = game:GetService("Lighting")
+    Lighting.Brightness = 2
+    Lighting.ClockTime = 14
+    Lighting.FogEnd = 1e10
+    Lighting.GlobalShadows = false
+    Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
 end
+
+local function boostFPS()
+    local Lighting = game:GetService("Lighting")
+    for _, v in pairs(Lighting:GetChildren()) do
+        if v:IsA("PostEffect") then v:Destroy() end
+    end
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("ParticleEmitter") or obj:IsA("Beam") then
+            obj.Enabled = false
+        end
+    end
+end
+
+workspace.DescendantAdded:Connect(function()
+    applyVisualSettings()
+    boostFPS()
+end)
+
+applyVisualSettings()
+boostFPS()
+
+game:GetService("RunService").RenderStepped:Connect(applyVisualSettings)
