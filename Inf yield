@@ -6,25 +6,33 @@ game:GetService("Players").LocalPlayer.Idled:Connect(function()
 end)
 
 local UserInputService = game:GetService("UserInputService")
-local infiniteJump = true
-UserInputService.JumpRequest:Connect(function()
-    if infiniteJump then
-        local character = game:GetService("Players").LocalPlayer.Character
-        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            humanoid:ChangeState("Jumping")
+local infiniteJumpEnabled = true
+local player = game:GetService("Players").LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+-- Infinite Jump function (works like Delta InfYield)
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed then
+        if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space then
+            if infiniteJumpEnabled then
+                humanoid:ChangeState("Jumping")
+            end
         end
     end
 end)
 
+-- Full Brightness and No Fog function
 local function applyFullBrightAndNoFog()
     local Lighting = game:GetService("Lighting")
-    Lighting.Brightness = 2
+    Lighting.Brightness = 10
     Lighting.ClockTime = 12
     Lighting.FogEnd = 1e10
     Lighting.GlobalShadows = false
     Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
+    Lighting.Ambient = Color3.new(1, 1, 1)
 end
 
+-- Apply Full Brightness and No Fog continuously
 applyFullBrightAndNoFog()
 game:GetService("RunService").RenderStepped:Connect(applyFullBrightAndNoFog)
