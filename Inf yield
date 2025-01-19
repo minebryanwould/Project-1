@@ -28,17 +28,17 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- Full Brightness and No Fog function
-local function applyFullBrightAndNoFog()
+-- Full Brightness and No Fog function with more balanced lighting
+local function applyBalancedLighting()
     local Lighting = game:GetService("Lighting")
-    Lighting.Brightness = 10
+    Lighting.Brightness = 2  -- Balanced brightness
     Lighting.ClockTime = 12
     Lighting.FogEnd = 1e10
-    Lighting.GlobalShadows = false
-    Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
-    Lighting.Ambient = Color3.new(1, 1, 1)
+    Lighting.GlobalShadows = true
+    Lighting.OutdoorAmbient = Color3.new(0.8, 0.8, 0.8)  -- Slightly dimmer
+    Lighting.Ambient = Color3.new(0.8, 0.8, 0.8)  -- Slightly dimmer ambient light
 end
 
--- Apply Full Brightness and No Fog continuously
-applyFullBrightAndNoFog()
-game:GetService("RunService").RenderStepped:Connect(applyFullBrightAndNoFog)
+-- Apply balanced lighting and no fog continuously
+applyBalancedLighting()
+game:GetService("RunService").RenderStepped:Connect(applyBalancedLighting)
