@@ -1,0 +1,271 @@
+-- TDS Recorder & Playback System (Delta Executor Format)
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local CoreGui = game:GetService("CoreGui")
+
+-- Wait for game to load
+repeat task.wait() until ReplicatedStorage:FindFirstChild("Events")
+local Events = ReplicatedStorage.Events
+
+-- Recording variables
+local recording = {
+    code = "-- TDS Auto-Generated Script\n",
+    wave = 0,
+    towersPlaced = 0,
+    lastSkipWave = 0
+}
+local isRecording = false
+local isPlaying = false
+
+-- UI Setup
+if CoreGui:FindFirstChild("TDSRecorderUI") then
+    CoreGui.TDSRecorderUI:Destroy()
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "TDSRecorderUI"
+screenGui.Parent = CoreGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0.4, 0, 0.3, 0)
+mainFrame.Position = UDim2.new(0.55, 0, 0.05, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+mainFrame.Parent = screenGui
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0.15, 0)
+title.Text = "TDS Recorder v3.0"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.BackgroundTransparency = 1
+title.Parent = mainFrame
+
+local recordBtn = Instance.new("TextButton")
+recordBtn.Size = UDim2.new(0.8, 0, 0.2, 0)
+recordBtn.Position = UDim2.new(0.1, 0, 0.2, 0)
+recordBtn.Text = "Start Recording"
+recordBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+recordBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+recordBtn.Parent = mainFrame
+
+local playBtn = Instance.new("TextButton")
+playBtn.Size = UDim2.new(0.8, 0, 0.2, 0)
+playBtn.Position = UDim2.new(0.1, 0, 0.45, 0)
+playBtn.Text = "Play Recording"
+playBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+playBtn.BackgroundColor3 = Color3.fromRGB(60, 80, 60)
+playBtn.Parent = mainFrame
+
+local codeBtn = Instance.new("TextButton")
+codeBtn.Size = UDim2.new(0.8, 0, 0.2, 0)
+codeBtn.Position = UDim2.new(0.1, 0, 0.7, 0)
+codeBtn.Text = "Copy Code"
+codeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+codeBtn.BackgroundColor3 = Color3.fromRGB(80, 60, 60)
+codeBtn.Parent = mainFrame
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(0.8, 0, 0.15, 0)
+statusLabel.Position = UDim2.new(0.1, 0, 0.9, 0)
+statusLabel.Text = "Status: Ready"
+statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+statusLabel.BackgroundTransparency = 1
+statusLabel.TextYAlignment = Enum.TextYAlignment.Top
+statusLabel.TextWrapped = true
+statusLabel.Parent = mainFrame
+
+-- Add comment to recording
+local function addComment(comment)
+    recording.code = recording.code .. "-- " .. comment .. "\n"
+end
+
+-- Add command to recording
+local function addCommand(command)
+    recording.code = recording.code .. command .. "\n"
+end
+
+-- Record tower placement
+local function recordPlaceTower(towerType, position)
+    recording.towersPlaced = recording.towersPlaced + 1
+    addCommand(string.format(
+        'TDS:Place("%s", %.15f, %.15f, %.15f, %d, 0, %d)--%d %s %d',
+        towerType,
+        position.X, position.Y, position.Z,
+        recording.wave,
+        #recording.code % 9 + 1,  -- Randomize last number for variation
+        recording.towersPlaced,
+        towerType,
+        recording.towersPlaced
+    ))
+end
+
+-- Record tower upgrade
+local function recordUpgrade(towerId, path)
+    addCommand(string.format(
+        "TDS:Upgrade(%d, %d, 0, %d)--%s %d upgrade %d",
+        towerId,
+        recording.wave,
+        #recording.code % 4 + 1,  -- Randomize last number
+        "tower",
+        towerId,
+        path
+    ))
+end
+
+-- Record wave skip
+local function recordSkip(wave)
+    if recording.lastSkipWave ~= wave then
+        addCommand(string.format(
+            "TDS:Skip(%d, 0, %d)",
+            wave,
+            #recording.code % 9 + 1
+        ))
+        recording.lastSkipWave = wave
+    end
+end
+
+-- Start new recording
+local function startRecording()
+    recording = {
+        code = "-- TDS Auto-Generated Script\n",
+        wave = 0,
+        towersPlaced = 0,
+        lastSkipWave = 0
+    }
+    addComment("Recording started at wave " .. recording.wave)
+    isRecording = true
+    recordBtn.Text = "Stop Recording"
+    statusLabel.Text = "Recording... (0 towers placed)"
+end
+
+-- Stop recording and save code
+local function stopRecording()
+    isRecording = false
+    recordBtn.Text = "Start Recording"
+    statusLabel.Text = string.format("Recording stopped (%d towers placed)", recording.towersPlaced)
+    addComment("Recording complete!")
+    
+    -- Save to clipboard if possible
+    pcall(function()
+        setclipboard(recording.code)
+    end)
+end
+
+-- Play back recorded script
+local function playRecording()
+    if isPlaying or not recording.code or #recording.code == 0 then return end
+    isPlaying = true
+    playBtn.Text = "Stop Playback"
+    statusLabel.Text = "Playing back recording..."
+    
+    -- Execute each line with proper timing
+    local lines = {}
+    for line in recording.code:gmatch("[^\r\n]+") do
+        if not line:match("^%-%-") then  -- Skip comments
+            table.insert(lines, line)
+        end
+    end
+    
+    for i, line in ipairs(lines) do
+        if not isPlaying then break end
+        statusLabel.Text = string.format("Playing (%d/%d)", i, #lines)
+        
+        -- Execute the command
+        local success, err = pcall(function()
+            loadstring(line)()
+        end)
+        
+        if not success then
+            statusLabel.Text = "Error: " .. tostring(err)
+            break
+        end
+        
+        -- Small delay between commands
+        task.wait(0.1)
+    end
+    
+    isPlaying = false
+    playBtn.Text = "Play Recording"
+    if isPlaying then
+        statusLabel.Text = "Playback complete!"
+    else
+        statusLabel.Text = "Playback stopped"
+    end
+end
+
+-- Hook into game events
+local function hookEvents()
+    -- Tower placement
+    local placeEvent = Events:FindFirstChild("PlaceTower")
+    if placeEvent then
+        placeEvent.OnClientEvent:Connect(function(towerType, position)
+            if isRecording then
+                recordPlaceTower(towerType, position)
+                statusLabel.Text = string.format("Recording... (%d towers placed)", recording.towersPlaced)
+            end
+        end)
+    end
+    
+    -- Tower upgrades
+    local upgradeEvent = Events:FindFirstChild("UpgradeTower")
+    if upgradeEvent then
+        upgradeEvent.OnClientEvent:Connect(function(towerInstance, upgradePath)
+            if isRecording then
+                -- Need to find tower ID (this part may need adjustment)
+                for i, child in pairs(Workspace.Towers:GetChildren()) do
+                    if child == towerInstance then
+                        recordUpgrade(i, upgradePath == "Damage" and 1 or upgradePath == "Speed" and 2 or 3)
+                        break
+                    end
+                end
+            end
+        end)
+    end
+    
+    -- Wave changes
+    local waveEvent = Events:FindFirstChild("WaveChanged")
+    if waveEvent then
+        waveEvent.OnClientEvent:Connect(function(wave)
+            recording.wave = wave
+            if isRecording then
+                recordSkip(wave)
+            end
+        end)
+    end
+end
+
+-- UI Event Handlers
+recordBtn.MouseButton1Click:Connect(function()
+    if isRecording then
+        stopRecording()
+    else
+        startRecording()
+    end
+end)
+
+playBtn.MouseButton1Click:Connect(function()
+    if isPlaying then
+        isPlaying = false
+        playBtn.Text = "Play Recording"
+        statusLabel.Text = "Playback stopped"
+    else
+        playRecording()
+    end
+end)
+
+codeBtn.MouseButton1Click:Connect(function()
+    if recording.code and #recording.code > 0 then
+        pcall(function()
+            setclipboard(recording.code)
+            statusLabel.Text = "Code copied to clipboard!"
+            task.wait(2)
+            statusLabel.Text = "Ready"
+        end)
+    else
+        statusLabel.Text = "No recording to copy!"
+    end
+end)
+
+-- Initialize
+hookEvents()
